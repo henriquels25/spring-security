@@ -71,9 +71,9 @@ public class OAuth2ResourceServerControllerTests {
 		mockMvc.perform(get("/message").with(jwt()))
 				.andExpect(status().isForbidden());
 	}
-	
+
 	@Test
-	public void messageCanNotBeCreatedWithoutScopeMessageReadAuthority() throws Exception {
+	public void messageCanNotBeCreatedWithoutAnyScope() throws Exception {
 		Jwt jwt = Jwt.withTokenValue("token")
 				.header("alg", "none")
 				.claim("scope", "")
@@ -86,11 +86,24 @@ public class OAuth2ResourceServerControllerTests {
 	}
 
 	@Test
-	public void messageCanBeCreatedWithScopeMessageReadAuthority()
+	public void messageCanNotBeCreatedWithScopeMessageReadAuthority() throws Exception {
+		Jwt jwt = Jwt.withTokenValue("token")
+				.header("alg", "none")
+				.claim("scope", "SCOPE_message:read")
+				.build();
+		when(jwtDecoder.decode(anyString())).thenReturn(jwt);
+		mockMvc.perform(post("/message")
+				.content("Hello message")
+				.header("Authorization", "Bearer " + jwt.getTokenValue()))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	public void messageCanBeCreatedWithScopeMessageWriteAuthority()
 			throws Exception {
 		Jwt jwt = Jwt.withTokenValue("token")
 				.header("alg", "none")
-				.claim("scope", "message:read")
+				.claim("scope", "message:write")
 				.build();
 		when(jwtDecoder.decode(anyString())).thenReturn(jwt);
 		mockMvc.perform(post("/message")

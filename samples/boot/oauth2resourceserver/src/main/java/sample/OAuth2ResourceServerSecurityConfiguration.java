@@ -15,11 +15,13 @@
  */
 package sample;
 
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 /**
  * @author Josh Cummings
@@ -31,15 +33,17 @@ public class OAuth2ResourceServerSecurityConfiguration extends WebSecurityConfig
 	protected void configure(HttpSecurity http) throws Exception {
 		// @formatter:off
 		http
-			.authorizeRequests(authorizeRequests ->
-				authorizeRequests
-					.antMatchers("/message/**").hasAuthority("SCOPE_message:read")
-					.anyRequest().authenticated()
-			)
-			.oauth2ResourceServer(oauth2ResourceServer ->
-				oauth2ResourceServer
-					.jwt(withDefaults())
-			);
+				.authorizeRequests(authorizeRequests ->
+						authorizeRequests
+								.antMatchers(GET, "/message/**").hasAuthority("SCOPE_message:read")
+								.antMatchers(POST, "/message/**")
+								.hasAuthority("SCOPE_message:write")
+								.anyRequest().authenticated()
+				)
+				.oauth2ResourceServer(oauth2ResourceServer ->
+						oauth2ResourceServer
+								.jwt(withDefaults())
+				);
 		// @formatter:on
 	}
 }
